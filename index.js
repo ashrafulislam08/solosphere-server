@@ -23,7 +23,7 @@ async function run() {
   try {
     const db = client.db(`soloSphere`);
     const jobsCollection = db.collection("jobs");
-
+    const bidsCollection = db.collection("bids");
     // save a jobData in db
     app.post("/add-job", async (req, res) => {
       const jobData = req.body;
@@ -73,6 +73,20 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const options = { upsert: true };
       const result = await jobsCollection.updateOne(query, updated, options);
+      res.send(result);
+    });
+
+    // save a bidData in db
+    app.post("/add-bid", async (req, res) => {
+      const bidData = req.body;
+      const result = await bidsCollection.insertOne(bidData);
+      const filter = { _id: new ObjectId(bidData.jobId) };
+      const update = {
+        $inc: {
+          bid_count: 1,
+        },
+      };
+      const updateBidCount = await jobsCollection.updateOne(filter, update);
       res.send(result);
     });
 
